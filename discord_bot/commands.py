@@ -8,7 +8,7 @@ import os
 import logging
 
 load_dotenv()
-DISCORD_BOT_SECRET = os.environ["DISCORD_BOT_SECRET"]
+DISCORD_BOT_SECRET = os.getenv("DISCORD_BOT_SECRET")
 intents = discord.Intents.all()
 log_handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 intents.message_content = True
@@ -25,8 +25,11 @@ async def on_ready():
 async def hello(ctx):
     await ctx.send("Hola krnal")
 
-client.run(f'{DISCORD_BOT_SECRET}', log_handler=log_handler, log_level=logging.DEBUG)
 
 @client.command(aliases=['importchar', 'charimport', 'ic'])
 async def importcharacter(ctx):
     pass
+
+
+client.run(f'{DISCORD_BOT_SECRET}', log_handler=log_handler, log_level=logging.DEBUG)
+
