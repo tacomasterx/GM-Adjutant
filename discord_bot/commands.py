@@ -2,6 +2,7 @@ from converters import Slapper
 from pathbuilder2 import *
 from display import *
 from error_handlers import *
+from database import *
 
 import discord
 from dotenv import load_dotenv
@@ -20,6 +21,7 @@ client = commands.Bot(command_prefix="|", intents=intents)
 
 @client.event
 async def on_ready():
+    await initialize_db()
     print(f'We have logged in as {client.user}')
 
 
@@ -48,26 +50,28 @@ async def slap(ctx, reason = Slapper()):
 
 @client.command(aliases=['importchar', 'charimport', 'ic'])
 async def importcharacter(ctx, pathbuilder_code: int):
-    # author = ctx.message.author
-    # commands = str(ctx.message.content).split()
-    # if len(commands) >= 2:
-    #     embed = discord.Embed(
-    #             title="Success",
-    #             description=f"Nice arguments:\n{commands[0]}\n{commands[1]}",
-    #             color=discord.Color.green(),
-    #             timestamp=ctx.message.created_at
-    #             )
-    # else:
-    #     embed = discord.Embed(
-    #             title="Error",
-    #             description="Not enough valid arguments",
-    #             color=discord.Color.red(),
-    #             timestamp=ctx.message.created_at
-    #             )
-    embed = discord.Embed(
+    user_id = await add_user(ctx.message.author.id, ctx.guild.id)
+    if user_id == 0:
+        embed = discord.Embed(
+                title="Error",
+                description="Error storing your user data. Please contact and admin.",
+                color=discord.Color.red(),
+                )
+    else:
+        pathbuilder_character = await get_pathbuilder_character(pathbuilder_code)
+        if pathbuilder_character["success"]:
+            character_id = await add_character(user_id, pathbuilder_character["build"])
+            embed = discord.Embed(
                 title="Success",
-                description=f"Nice arguments:\n{pathbuilder_code}",
+                description=f"Character id:\n{character_id}\n",
                 color=discord.Color.green(),
+                timestamp=ctx.message.created_at
+                )
+        else:
+            embed = discord.Embed(
+                title="Error",
+                description=f"Character could not be stored.",
+                color=discord.Color.red(),
                 timestamp=ctx.message.created_at
                 )
     await ctx.send(embed=embed)
